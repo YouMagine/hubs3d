@@ -6,7 +6,7 @@ require "oauth"
 # Net::HTTP.http_logger_options = {:verbose => true}
 
 require "hubs3d/configuration"
-require "hubs3d/exception"
+require "hubs3d/error"
 
 module Hubs3D
   module API
@@ -19,11 +19,17 @@ module Hubs3D
       response = token.post(Hubs3D.configuration.api_path + path,
                             params,
                             "Accept" => "application/json")
-      result = JSON.parse(response.body)
 
-      raise Exception, result.first if result.kind_of?(Array)
+      begin
+        result = JSON.parse(response.body)
+      rescue
+      end
 
-      result
+      if (200...300).include?(response.code.to_i)
+        result
+      else
+        fail Error.new(result, response)
+      end
     end
   end
 end

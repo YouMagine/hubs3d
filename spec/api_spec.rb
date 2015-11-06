@@ -21,14 +21,14 @@ describe Hubs3D::API do
       expect(post).to eq("answer" => 42)
     end
 
-    it "raises when the response is an array containing an error" do
+    it "raises when the response is not 200" do
       stub_request(:post, "http://test.3dhubs.com/api/v1/some/path")
         .with(body: { "foo" => "bar" }, headers: http_headers)
-        .to_return(status: 200, body: '["error message"]')
+        .to_return(status: 500, body: '["error message"]')
 
       expect do
         described_class.post("/some/path", foo: "bar")
-      end.to raise_error(Hubs3D::Exception, "error message")
+      end.to raise_error(Hubs3D::Error, "error message (status code = 500)")
     end
   end
 end

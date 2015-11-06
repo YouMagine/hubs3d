@@ -33,7 +33,7 @@ module Hubs3D
         attachments: attachments
       }
 
-      API.post("/model", params.keep_if { |k, v| v.present? })
+      API.post("/model", params.delete_if { |k, v| v.nil? || v.empty? })
     end
   end
 end

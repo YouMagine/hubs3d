@@ -3,27 +3,31 @@ require "hubs3d/model"
 
 describe Hubs3D::Model do
   let(:model) do
-    described_class.new(name: "Foo",
-                        path: "example.stl",
+    described_class.new(name: "foo.stl",
+                        path: "spec/fixtures/example.stl",
                         attachments: [{foo: "bar"}])
   end
 
   describe "#name" do
     it "returns the name" do
-      expect(model.name).to eq("Foo")
+      expect(model.name).to eq "foo.stl"
     end
   end
 
   describe "#path" do
     it "returns the path" do
-      expect(model.path).to eq("example.stl")
+      expect(model.path).to eq "spec/fixtures/example.stl"
     end
   end
 
   describe "#id" do
     it "triggers #post if @id is not set" do
-      expect(model).to receive(:post).and_return({})
-      model.id
+      stub_request(:post, "https://www.3dhubs.com/api/v1/model")
+        .with(body: {"file"=>"Rk9vTwo=\n", "fileName"=>"foo.stl"},
+              headers: {'Accept' => 'application/json'})
+        .to_return(status: 200, body: '{"modelId":"42"}')
+
+      expect(model.id).to eq(42)
     end
 
     it "only returns @id if it is already set" do

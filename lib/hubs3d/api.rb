@@ -20,15 +20,11 @@ module Hubs3D
                             params,
                             "Accept" => "application/json")
 
-      begin
-        result = JSON.parse(response.body)
-      rescue
-      end
-
-      if (200...300).include?(response.code.to_i)
-        result
+      if response.code == "200"
+        JSON.parse(response.body)
       else
-        fail Error.new(result, response)
+        fail Error, "3D Hubs API Error (Code: #{response.code}): " \
+                    "#{response.body}"
       end
     end
   end

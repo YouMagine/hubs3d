@@ -16,24 +16,27 @@ module Hubs3D
     end
 
     def id
-      @id ||= post["modelId"].to_i
+      @id ||= begin
+        result = post
+        fail "Expected #{result.inspect} to have modelId" if !result["modelId"]
+        result["modelId"].to_i
+      end
     end
 
 
     private
 
-    def base_64
+    def base_64_file
       Base64.encode64 open(@path, 'r') { |f| f.read }
     end
 
     def post
       params = {
-        file: base_64,
+        file: base_64_file,
         fileName: name,
-        attachments: attachments
       }
-
-      API.post("/model", params.delete_if { |k, v| v.nil? || v.empty? })
+      params[:attachments] = attachments if attachments
+      API.post("/model", params)
     end
   end
 end

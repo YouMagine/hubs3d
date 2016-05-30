@@ -20,12 +20,27 @@ module Hubs3D
                             params,
                             "Accept" => "application/json")
 
-      if response.code == "200"
-        JSON.parse(response.body)
-      else
-        fail Error, "3D Hubs API Error (Code: #{response.code}): " \
-                    "#{response.body}"
+      begin
+        result = JSON.parse(response.body)
+      rescue
       end
+
+      if (200...300).include?(response.code.to_i)
+        result
+      else
+        fail Error, get_error_message(result, response)
+      end
+    end
+
+    module_function
+    def get_error_message(json_result, response)
+      if json_result.kind_of?(Array) && json_result.size == 1
+        message = json_result.first
+      else
+        message = "Unexpected response (body=#{response.body}"
+      end
+
+      "#{message} (status code = #{response.code})"
     end
   end
 end

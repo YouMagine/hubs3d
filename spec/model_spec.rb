@@ -5,7 +5,7 @@ describe Hubs3D::Model do
   let(:model) do
     described_class.new(name: "foo.stl",
                         path: "spec/fixtures/example.stl",
-                        attachments: [{foo: "bar"}])
+                        attachments: ["foobar"])
   end
 
   describe "#name" do
@@ -23,9 +23,9 @@ describe Hubs3D::Model do
   describe "#id" do
     it "triggers #post if @id is not set" do
       stub_request(:post, "https://www.3dhubs.com/api/v1/model")
-        .with(body: {"file"=>"Rk9vTwo=\n", "fileName"=>"foo.stl"},
-              headers: {'Accept' => 'application/json'})
-        .to_return(status: 200, body: '{"modelId":"42"}')
+        .with(body: {"attachments"=>"foobar", "file"=>"Rk9vTwo=\n", "fileName"=>"foo.stl"},
+              headers: {"Accept" => "application/json"})
+        .to_return(status: 200, body: "{\"modelId\":\"42\"}")
 
       expect(model.id).to eq(42)
     end
@@ -39,15 +39,13 @@ describe Hubs3D::Model do
 
   describe "#attachments" do
     it "returns the attachments" do
-      expect(model.attachments).to match_array [{foo: "bar"}]
+      expect(model.attachments).to match_array ["foobar"]
     end
   end
 
-  describe "#base_64" do
+  describe "#base_64_file" do
     it "reads the file contents and returns the base64 representation" do
-      string_io = StringIO.new("foobar")
-      expect(model).to receive(:open).with("example.stl", "r").and_yield(string_io)
-      expect(model.send(:base_64)).to eq "Zm9vYmFy\n"
+      expect(model.send(:base_64_file)).to eq "Rk9vTwo=\n"
     end
   end
 
@@ -56,9 +54,9 @@ describe Hubs3D::Model do
       allow(model).to receive(:base_64).and_return("foobar")
 
       expect(Hubs3D::API).to receive(:post).with("/model",
-                                         file: "foobar",
-                                         fileName: "Foo",
-                                         attachments: [{foo: "bar"}])
+                                         file: "Rk9vTwo=\n",
+                                         fileName: "foo.stl",
+                                         attachments: ["foobar"])
 
       model.send(:post)
     end
